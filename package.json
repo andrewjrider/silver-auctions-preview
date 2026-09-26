@@ -1,0 +1,14 @@
+{
+  "name": "silver-auctions-preview",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Silver Auctions parallel site: catalog, assay, and Witnessmark evidence intake",
+  "main": "server/server.js",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "node --test test/*.test.js",
+    "demo-bundle": "node test/make-bundle.js demo-bundle.zip"
+  },
+  "dependencies": { "fflate": "0.8.2" }
+}

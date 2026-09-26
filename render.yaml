@@ -1,0 +1,30 @@
+# Render Blueprint for the Silver Auctions parallel site (preview).
+# Secrets are set in the Render dashboard, never in this file.
+services:
+  - type: web
+    name: silver-auctions-preview
+    runtime: node
+    plan: starter            # a persistent disk requires a paid instance
+    region: oregon
+    branch: main
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    disk:
+      name: evidence
+      mountPath: /var/data
+      sizeGB: 5
+    envVars:
+      - key: DATA_DIR
+        value: /var/data
+      - key: NODE_VERSION
+        value: "22"
+      - key: INTAKE_TOKEN          # inspector upload password; intake is closed until set
+        sync: false
+      - key: ANTHROPIC_API_KEY     # enables "Scan a car"; example reading shown until set
+        sync: false
+      - key: TRUSTED_DEVICE_KEYS   # comma-separated phone key fingerprints, e.g. 9e07-6f52-9051-e681
+        sync: false
+      - key: ASSAY_MODEL
+        value: claude-sonnet-5
