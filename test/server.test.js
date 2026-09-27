@@ -97,3 +97,11 @@ test('the page is served', () => withServer({}, async (base) => {
   assert.strictEqual(res.status, 200);
   assert.match(await res.text(), /SILVER AUCTIONS/);
 }));
+
+test('a verified bundle is not published unless the owner allowed the auction house', () => withServer({ INTAKE_TOKEN: 't' }, async (base) => {
+  const b = makeBundle({ consent: { ownerName: 'A', recipients: ['insurer'], grantedAt: '2026-09-25T00:00:00Z' } });
+  const res = await fetch(`${base}/api/bundles`, { method: 'POST', headers: { authorization: 'Bearer t' }, body: b.zip });
+  assert.strictEqual(res.status, 422);
+  assert.strictEqual((await res.json()).status, 'not_publishable');
+  assert.strictEqual((await (await fetch(`${base}/api/records`)).json()).records.length, 0);
+}));

@@ -32,6 +32,7 @@ function makeBundle({
   views = BASELINE_PROTOCOL.views.filter((v) => v[2]).map((v) => v[0]),
   accepted = true, lotNumber = '59', status = 'complete', key = crypto.generateKeyPairSync('ec', { namedCurve: 'P-256' }),
   keyStorage = 'secureEnclave', vehicle: vehicleOverrides = {}, photoFor = null,
+  consent = { ownerName: 'Sample Owner', recipients: ['auctionHouse', 'insurer'], statement: 'sample', grantedAt: '2026-09-25T16:55:00Z', recordedBy: 'Sample Inspector' },
 } = {}) {
   const orgID = U(); const vehicleID = U(); const sessionID = U();
   const media = {};
@@ -73,7 +74,7 @@ function makeBundle({
     vehicle: { id: vehicleID, organizationID: orgID, year: '1963', make: 'Maserati', model: '3500 GTi', trim: '', vin: '', lotNumber, notes: '', createdAt: '2026-09-25T16:00:00Z', ...vehicleOverrides },
     session: { id: sessionID, organizationID: orgID, vehicleID, protocolID: BASELINE_PROTOCOL.id.toUpperCase(), status,
       startedAt: '2026-09-25T17:00:00Z', completedAt: status === 'complete' ? '2026-09-25T18:20:00Z' : undefined,
-      evidenceObjects, automatedFindings: [], humanValidations: [] },
+      evidenceObjects, automatedFindings: [], humanValidations: [], sharingConsent: consent || undefined },
     files,
   };
   const manifestBytes = Buffer.from(JSON.stringify(manifest, null, 2));

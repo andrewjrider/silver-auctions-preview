@@ -151,6 +151,14 @@ function verifyBundle(zip, { trustedKeys = new Set(), now = new Date() } = {}) {
     if (lc(vehicle.id) !== lc(session.vehicleID)) throw new Rejection('Vehicle record does not match the session.');
     pass('Manifest', `format v1, session ${lc(session.id).slice(0, 8)}`);
 
+    // 0. Owner consent (docs/SESSION-BUNDLE.md): nothing is published without it.
+    const consent = session.sharingConsent;
+    const recipients = consent && Array.isArray(consent.recipients) ? consent.recipients.filter((r) => typeof r === 'string') : [];
+    if (!consent || !String(consent.ownerName || '').trim() || !recipients.length) {
+      throw new Rejection('The owner has not recorded consent to share this inspection.');
+    }
+    pass('Owner consent', `recorded ${String(consent.grantedAt || '').slice(0, 10)} \u00b7 may be shared with: ${recipients.join(', ')}`);
+
     // 1. Signature over the exact manifest bytes.
     if (signature.algorithm !== 'ecdsa-p256-sha256') throw new Rejection(`Unsupported signature algorithm ${signature.algorithm}.`);
     const x963 = Buffer.from(String(signature.publicKeyX963 || ''), 'base64');
@@ -250,6 +258,7 @@ function verifyBundle(zip, { trustedKeys = new Set(), now = new Date() } = {}) {
       captures: (session.evidenceObjects || []).length,
       requiredViews: required.length, requiredCaptured, requiredAccepted,
     };
+    report.consent = { recipients, grantedAt: consent.grantedAt, recordedBy: consent.recordedBy || '' };
     report.views = views;
     report.depth = depth;
     return { report, stored: { root, manifestBytes, signatureBytes, zip, media: new Map([...byPath].filter(([p]) => p.startsWith('media/'))) } };

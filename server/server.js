@@ -85,6 +85,10 @@ function createServer(env = process.env, deps = {}) {
         const { report, stored } = verifyBundle(zip, { trustedKeys });
         if (report.status !== 'verified') { store.logRejection(report); return send(res, 422, report); }
         if (p === '/api/bundles/verify') return send(res, 200, { ...report, published: false });
+        if (!report.consent.recipients.includes('auctionHouse')) {
+          return send(res, 422, { ...report, status: 'not_publishable', published: false,
+            message: 'The owner did not agree to share this inspection with the auction house, so it cannot be published here.' });
+        }
         return send(res, 201, { ...store.save(report, stored), published: true });
       }
       if (req.method === 'POST' && p === '/api/assay') {

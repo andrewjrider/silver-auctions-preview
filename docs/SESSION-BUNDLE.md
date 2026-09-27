@@ -26,6 +26,7 @@ base64), `signatureDER` (base64), `manifestSHA256` (hex), `keyStorage` (`secureE
 
 ## What the exporter guarantees
 
+- The owner's sharing consent (`session.sharingConsent`: owner name, recipients, statement, time, recorder) is recorded before export; there is no export without it.
 - Every media file is re-hashed and must equal the hash recorded at capture; otherwise nothing
   is exported.
 - File names are plain names (no paths), each referenced once.

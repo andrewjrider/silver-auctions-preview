@@ -701,6 +701,7 @@ function evidencePanel(r){
       '<dt>Required views</dt><dd>'+s.requiredCaptured+' of '+s.requiredViews+' captured &middot; '+s.requiredAccepted+' accepted by a reviewer</dd>'+
       '<dt>LiDAR depth</dt><dd>'+(depth.length?depth.length+' views &middot; '+cov+'% of depth pixels readable (coverage, not accuracy)':'None')+'</dd>'+
       '<dt>Captured</dt><dd>'+esc((s.startedAt||'').slice(0,10))+' &middot; phone status '+esc(s.status)+'</dd>'+
+      '<dt>Owner consent</dt><dd>'+(r.consent?'Shared with: '+esc((r.consent.recipients||[]).map(function(x){ return {auctionHouse:'auction house',insurer:'insurers',lender:'lenders',buyer:'buyers'}[x]||x; }).join(', ')):'Not recorded')+'</dd>'+
       '<dt>Device key</dt><dd class="mono">'+esc(d.fingerprint)+' &middot; '+(d.keyStorage==='secureEnclave'?'Secure Enclave':'software')+(d.registered?' &middot; registered':' &middot; not registered')+'</dd>'+
       '<dt>Bundle</dt><dd class="mono">'+esc(r.bundleSHA256)+'</dd>'+
     '</dl>'+
@@ -997,7 +998,7 @@ function wireEvidence(){
       var res=await fetch(publish?"/api/bundles":"/api/bundles/verify",{method:"POST",headers:{authorization:"Bearer "+tok.value,"content-type":"application/zip"},body:file.files[0]});
       var r=await res.json();
       if(res.status===401||res.status===503){ st.textContent=r.message||"Not accepted."; return; }
-      st.textContent = r.status==="verified" ? (r.published?"Verified and published.":"Verified. Not published.") : "Rejected — nothing was published.";
+      st.textContent = r.status==="verified" ? (r.published?"Verified and published.":"Verified. Not published.") : r.status==="not_publishable" ? (r.message||"Verified, but the owner did not allow publishing here.") : "Rejected — nothing was published.";
       out.innerHTML=checkList(r);
       if(r.published){ await loadRecords(); var l=lotByNum(r.vehicle&&r.vehicle.lotNumber); st.innerHTML='Verified and published. <a href="'+(l?'#/lot/'+l.lot:'#/evidence/'+r.id)+'">Open the record</a>'; }
     }catch(e){ st.textContent="Upload failed: "+e.message; }

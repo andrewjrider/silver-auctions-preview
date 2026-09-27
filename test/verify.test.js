@@ -129,3 +129,13 @@ test('incomplete inspections verify but carry warnings, and coverage is computed
 test('fingerprints are stable and short', () => {
   assert.match(keyFingerprint(Buffer.alloc(65, 4)), /^[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}$/);
 });
+
+test('a bundle without owner consent is rejected', () => {
+  rejectedBecause(verifyBundle(makeBundle({ consent: null }).zip).report, /not recorded consent/);
+});
+
+test('consent is reported with its recipients', () => {
+  const { report } = verifyBundle(makeBundle({ consent: { ownerName: 'A', recipients: ['insurer'], grantedAt: '2026-09-25T00:00:00Z' } }).zip);
+  assert.strictEqual(report.status, 'verified');
+  assert.deepStrictEqual(report.consent.recipients, ['insurer']);
+});
