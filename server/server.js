@@ -7,6 +7,7 @@
 //   TRUSTED_DEVICE_KEYS   comma-separated key fingerprints of registered inspection phones
 //   ANTHROPIC_API_KEY     enables "Scan a car"; the page shows the example reading when unset
 //   ASSAY_MODEL           model for the assay (default claude-sonnet-5)
+//   STAFF_TOKEN           staff console password (consignments, rejected uploads); falls back to INTAKE_TOKEN
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -14,12 +15,15 @@ const crypto = require('node:crypto');
 const { verifyBundle } = require('./verify');
 const { RecordStore } = require('./store');
 const { runAssay, AssayError, Limiter } = require('./assay');
+const { ConsignmentStore, ConsignmentError, validate: validateConsignment } = require('./consignments');
 
 function createServer(env = process.env, deps = {}) {
   const publicDir = path.join(__dirname, '..', 'public');
   const store = new RecordStore(env.DATA_DIR || path.join(__dirname, '..', 'data'));
   const trustedKeys = new Set(String(env.TRUSTED_DEVICE_KEYS || '').split(',').map((s) => s.trim()).filter(Boolean));
   const limiter = deps.limiter || new Limiter();
+  const consignLimiter = deps.consignLimiter || new Limiter({ perClientPerHour: 5, sitePerDay: 500 });
+  const consignments = new ConsignmentStore(env.DATA_DIR || path.join(__dirname, '..', 'data'));
   const indexHTML = fs.readFileSync(path.join(publicDir, 'index.html'));
 
   const send = (res, status, body, headers = {}) => {
@@ -48,6 +52,14 @@ function createServer(env = process.env, deps = {}) {
     const given = Buffer.from(String(req.headers.authorization || '').replace(/^Bearer\s+/i, ''));
     const want = Buffer.from(env.INTAKE_TOKEN);
     return given.length === want.length && crypto.timingSafeEqual(given, want);
+  };
+
+  const staffOK = (req) => {
+    const want = env.STAFF_TOKEN || env.INTAKE_TOKEN;
+    if (!want) return false;
+    const given = Buffer.from(String(req.headers.authorization || '').replace(/^Bearer\s+/i, ''));
+    const w = Buffer.from(want);
+    return given.length === w.length && crypto.timingSafeEqual(given, w);
   };
 
   const publicRecord = (r) => r; // reports hold no secrets; VIN is shown only if the inspector entered one
@@ -90,6 +102,37 @@ function createServer(env = process.env, deps = {}) {
             message: 'The owner did not agree to share this inspection with the auction house, so it cannot be published here.' });
         }
         return send(res, 201, { ...store.save(report, stored), published: true });
+      }
+      if (req.method === 'POST' && p === '/api/consignments') {
+        const client = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+        if (!consignLimiter.take(client)) return send(res, 429, { error: 'rate_limited', message: 'Too many requests from here. Try again in an hour or call the office.' });
+        let body;
+        try { body = JSON.parse((await readBody(req, 32 * 1024)).toString('utf8')); } catch { return send(res, 400, { error: 'invalid', message: 'That request could not be read.' }); }
+        try {
+          const rec = consignments.create(validateConsignment(body));
+          return send(res, 201, { id: rec.id, wantsKit: rec.wantsKit });
+        } catch (e) {
+          if (e instanceof ConsignmentError) return send(res, 400, { error: 'invalid', message: e.message });
+          throw e;
+        }
+      }
+      if (p.startsWith('/api/staff/')) {
+        if (!(env.STAFF_TOKEN || env.INTAKE_TOKEN)) return send(res, 503, { error: 'staff_closed', message: 'The staff console is not configured on this site.' });
+        if (!staffOK(req)) return send(res, 401, { error: 'unauthorized', message: 'Staff password is missing or wrong.' });
+        if (req.method === 'GET' && p === '/api/staff/consignments') return send(res, 200, { consignments: consignments.list() }, { 'cache-control': 'no-store' });
+        if (req.method === 'GET' && p === '/api/staff/rejections') return send(res, 200, { rejections: store.listRejections() }, { 'cache-control': 'no-store' });
+        if (req.method === 'PATCH' && (m = p.match(/^\/api\/staff\/consignments\/(C-\d{8}-[0-9A-F]{6})$/))) {
+          let body;
+          try { body = JSON.parse((await readBody(req, 16 * 1024)).toString('utf8')); } catch { return send(res, 400, { error: 'invalid' }); }
+          try {
+            const rec = consignments.update(m[1], body);
+            return rec ? send(res, 200, rec) : send(res, 404, { error: 'not_found' });
+          } catch (e) {
+            if (e instanceof ConsignmentError) return send(res, 400, { error: 'invalid', message: e.message });
+            throw e;
+          }
+        }
+        return send(res, 404, { error: 'not_found' });
       }
       if (req.method === 'POST' && p === '/api/assay') {
         if (!env.ANTHROPIC_API_KEY) return send(res, 503, { code: 'not_configured' });

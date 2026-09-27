@@ -105,3 +105,42 @@ test('a verified bundle is not published unless the owner allowed the auction ho
   assert.strictEqual((await res.json()).status, 'not_publishable');
   assert.strictEqual((await (await fetch(`${base}/api/records`)).json()).records.length, 0);
 }));
+
+test('consignment requests: validated, stored, and visible only in the staff console', () => withServer({ INTAKE_TOKEN: 'intake', STAFF_TOKEN: 'staff' }, async (base) => {
+  const bad = await fetch(`${base}/api/consignments`, { method: 'POST', body: JSON.stringify({ name: 'A' }) });
+  assert.strictEqual(bad.status, 400);
+  assert.match((await bad.json()).message, /email/);
+  const ok = await fetch(`${base}/api/consignments`, { method: 'POST', body: JSON.stringify({
+    name: 'Pat Owner', email: 'pat@example.com', location: 'Missoula, MT', vehicle: '1967 Ford Mustang', vin: '7r02c123456', wantsKit: true, consent: true }) });
+  assert.strictEqual(ok.status, 201);
+  const { id, wantsKit } = await ok.json();
+  assert.match(id, /^C-\d{8}-[0-9A-F]{6}$/);
+  assert.strictEqual(wantsKit, true);
+
+  assert.strictEqual((await fetch(`${base}/api/staff/consignments`)).status, 401);
+  assert.strictEqual((await fetch(`${base}/api/staff/consignments`, { headers: { authorization: 'Bearer intake' } })).status, 401);
+  const list = (await (await fetch(`${base}/api/staff/consignments`, { headers: { authorization: 'Bearer staff' } })).json()).consignments;
+  assert.strictEqual(list.length, 1);
+  assert.strictEqual(list[0].vin, '7R02C123456');
+
+  const upd = await fetch(`${base}/api/staff/consignments/${id}`, { method: 'PATCH', headers: { authorization: 'Bearer staff' }, body: JSON.stringify({ status: 'kit_sent', lotNumber: '59', by: 'Office' }) });
+  assert.strictEqual(upd.status, 200);
+  const rec = await upd.json();
+  assert.strictEqual(rec.status, 'kit_sent');
+  assert.strictEqual(rec.history.length, 2);
+  const badStatus = await fetch(`${base}/api/staff/consignments/${id}`, { method: 'PATCH', headers: { authorization: 'Bearer staff' }, body: JSON.stringify({ status: 'sold-to-me' }) });
+  assert.strictEqual(badStatus.status, 400);
+}));
+
+test('consignment VIN with I, O or Q is refused; consent is required', () => withServer({}, async (base) => {
+  const base1 = { name: 'A', email: 'a@b.co', location: 'X', vehicle: 'Y', consent: true };
+  assert.strictEqual((await fetch(`${base}/api/consignments`, { method: 'POST', body: JSON.stringify({ ...base1, vin: 'IOQ12' }) })).status, 400);
+  assert.strictEqual((await fetch(`${base}/api/consignments`, { method: 'POST', body: JSON.stringify({ ...base1, consent: false }) })).status, 400);
+}));
+
+test('refused uploads appear in the staff console', () => withServer({ INTAKE_TOKEN: 't' }, async (base) => {
+  await fetch(`${base}/api/bundles`, { method: 'POST', headers: { authorization: 'Bearer t' }, body: Buffer.from('junk') });
+  const rj = (await (await fetch(`${base}/api/staff/rejections`, { headers: { authorization: 'Bearer t' } })).json()).rejections;
+  assert.strictEqual(rj.length, 1);
+  assert.match(rj[0].checks[rj[0].checks.length - 1].detail, /zip/);
+}));

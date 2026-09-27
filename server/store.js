@@ -37,6 +37,13 @@ class RecordStore {
     fs.writeFileSync(path.join(this.rejectedDir, name), JSON.stringify(report, null, 2));
   }
 
+  /** Most recent rejected uploads, newest first (their reports only; no files were kept). */
+  listRejections(limit = 50) {
+    return fs.readdirSync(this.rejectedDir).filter((f) => f.endsWith('.json')).sort().reverse().slice(0, limit)
+      .map((f) => { try { return JSON.parse(fs.readFileSync(path.join(this.rejectedDir, f), 'utf8')); } catch { return null; } })
+      .filter(Boolean);
+  }
+
   list() {
     return [...this.records.values()].sort((a, b) => String(b.receivedAt).localeCompare(String(a.receivedAt)));
   }

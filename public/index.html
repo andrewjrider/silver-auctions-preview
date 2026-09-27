@@ -245,6 +245,20 @@
   footer.foot p{ color:var(--muted); font-size:.82rem; max-width:80ch; margin-top:9px; line-height:1.65; }
   footer.foot .wm{ font-family:"Bodoni Moda",serif; font-weight:700; font-size:1.15rem; }
 
+  /* Consign + staff */
+  .kit{ display:flex; gap:10px; align-items:flex-start; margin-top:14px; font-size:.9rem; color:var(--ink-soft); cursor:pointer; }
+  .kit input{ margin-top:4px; flex:none; }
+  .stafftbl{ width:100%; border-collapse:collapse; font-size:.88rem; margin-top:12px; }
+  .stafftbl th{ text-align:left; font-family:"Archivo Narrow",sans-serif; font-size:.7rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--rule); padding:8px 8px; }
+  .stafftbl td{ border-bottom:1px solid var(--rule-soft); padding:10px 8px; vertical-align:top; }
+  .stafftbl td small{ display:block; color:var(--muted); }
+  .scroll{ overflow-x:auto; }
+  .pill{ display:inline-block; font-family:"Archivo Narrow",sans-serif; font-size:.68rem; letter-spacing:.1em; text-transform:uppercase; padding:2px 7px; border:1px solid currentColor; border-radius:2px; }
+  .pill.kit{ color:var(--patina); margin:0; } .pill.new{ color:var(--oxblood); }
+  .tiles{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:18px; }
+  .tile{ border:1px solid var(--rule); background:var(--card); padding:14px 16px; }
+  .tile .n{ font-size:1.8rem; font-weight:700; font-variant-numeric:tabular-nums; }
+  @media (max-width:720px){ .tiles{ grid-template-columns:repeat(2,1fr); } }
   /* Witnessmark evidence */
   .wm-badge{ position:absolute; bottom:8px; right:8px; background:var(--patina); color:#fff; font-family:"Archivo Narrow",sans-serif;
     font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; padding:3px 7px; border-radius:2px; }
@@ -306,6 +320,7 @@
     <div class="wm">SILVER AUCTIONS</div>
     <p><b>Preview build.</b> This is a development preview of a rebuilt Silver Auctions platform &mdash; it is not the live silverauctions.com, and no bid placed here reaches an auction. Lot numbers, titles and photographs are Silver Auctions' own, read from the live Sun Valley 2026 catalog on September 5, 2026.</p>
     <p>Every condition grade, flag and valuation band shown was produced by the Silver Standard assay from a single catalog photograph, to demonstrate the method. They are estimates for discussion, not appraisals, not offers, and not investment advice. Historic auction footprint from the house's 2002&ndash;2024 event index. Consignment terms shown are the house's published schedule.</p>
+    <p><a href="#/staff" style="color:var(--muted)">Staff console</a></p>
   </div>
 </footer>
 
@@ -761,17 +776,25 @@ function viewConsign(){
     '<h1 style="font-size:2.2rem">Barn in Montana. Block in Sun Valley.</h1>'+
     '<p style="color:var(--ink-soft);max-width:62ch;margin-top:12px">Scan the car where it sits. Get a grade and a band in minutes. Decide whether to consign <em>before</em> you pay an entry fee or hook up a trailer &mdash; which is the reason most good cars never get entered at all.</p>'+
     '<div class="inst" style="margin-top:28px">'+ instrumentHTML("consign") +'</div>'+
-    '<div class="doc" style="margin-top:20px">'+
+    '<div class="doc" style="margin-top:20px" id="c-form">'+
       '<h4>Then consign it</h4>'+
+      '<p style="color:var(--ink-soft);font-size:.92rem;margin-top:6px">Tell us about the car. Silver\'s office calls you back to talk through the next sale, reserve and entry.</p>'+
       '<div class="two" style="margin-top:14px;gap:16px">'+
-        '<div class="field"><label class="lbl" for="c-name">Name</label><input id="c-name" autocomplete="off" placeholder="Your name"></div>'+
+        '<div class="field"><label class="lbl" for="c-name">Your name</label><input id="c-name" autocomplete="name"></div>'+
+        '<div class="field"><label class="lbl" for="c-email">Email</label><input id="c-email" type="email" autocomplete="email"></div>'+
+        '<div class="field"><label class="lbl" for="c-phone">Phone &mdash; optional</label><input id="c-phone" type="tel" autocomplete="tel"></div>'+
         '<div class="field"><label class="lbl" for="c-loc">Where the car is</label><input id="c-loc" autocomplete="off" placeholder="Missoula, MT"></div>'+
-        '<div class="field"><label class="lbl" for="c-res">Reserve</label><select id="c-res"><option>No reserve — 5% commission, $200 minimum</option><option>Reserve — 8% commission, $300 minimum</option></select></div>'+
-        '<div class="field"><label class="lbl" for="c-sale">Sale</label><select id="c-sale"><option>Car d\'Lane — June, Coeur d\'Alene</option><option>Wagon Days — Labor Day, Sun Valley</option><option>Next timed online sale</option></select></div>'+
+        '<div class="field"><label class="lbl" for="c-veh">Year, make, model</label><input id="c-veh" autocomplete="off" placeholder="1967 Ford Mustang fastback"></div>'+
+        '<div class="field"><label class="lbl" for="c-vin">VIN &mdash; optional</label><input id="c-vin" autocomplete="off" maxlength="17"></div>'+
+        '<div class="field"><label class="lbl" for="c-res">Reserve</label><select id="c-res"><option value="no_reserve">No reserve &mdash; 5% commission, $200 minimum</option><option value="reserve">Reserve &mdash; 8% commission, $300 minimum</option></select></div>'+
+        '<div class="field"><label class="lbl" for="c-sale">Sale</label><select id="c-sale" disabled><option>Next Silver sale &mdash; date to be announced</option></select></div>'+
       '</div>'+
-      '<button class="btn" id="c-submit" style="margin-top:16px">Submit consignment</button>'+
-      '<div class="bidmsg" id="c-msg" style="color:var(--patina)"></div>'+
-      '<p style="font-family:\'Archivo Narrow\',sans-serif;font-size:.74rem;color:var(--muted);margin-top:12px">Preview build &mdash; nothing is submitted and no fee is charged. Entry fees, commission and the 8% buyer\'s premium shown are the house\'s published schedule.</p>'+
+      '<div class="field" style="margin-top:14px"><label class="lbl" for="c-notes">Anything we should know &mdash; optional</label><input id="c-notes" autocomplete="off" placeholder="Numbers-matching, restored 2019, stored indoors"></div>'+
+      '<label class="kit" for="c-kit"><input type="checkbox" id="c-kit"><span><b>Send me a Witnessmark scan kit.</b> Planned offer: a $249 refundable deposit, refunded when Silver sells the car. You scan the car where it sits and the verified record goes on the lot page. No payment is taken here; the office confirms the kit with you first.</span></label>'+
+      '<label class="kit" for="c-ok"><input type="checkbox" id="c-ok"><span>Silver Auctions may contact me about consigning this car.</span></label>'+
+      '<button class="btn" id="c-submit" style="margin-top:16px">Send to the consignment office</button>'+
+      '<div class="bidmsg" id="c-msg" role="status" style="color:var(--patina)"></div>'+
+      '<p style="font-family:\'Archivo Narrow\',sans-serif;font-size:.74rem;color:var(--muted);margin-top:12px">Preview build. Requests reach this preview\'s staff console, not Silver Auctions\' live office. Entry fees, commission and the 8% buyer\'s premium shown are the house\'s published schedule.</p>'+
     '</div>'+
   '</div></section>'+
 
@@ -795,11 +818,22 @@ function viewConsign(){
 
 function wireConsign(){
   var b=document.getElementById("c-submit"), m=document.getElementById("c-msg");
-  if(b) b.addEventListener("click",function(){
-    var n=(document.getElementById("c-name").value||"").trim();
-    var loc=(document.getElementById("c-loc").value||"").trim();
-    m.textContent = "Preview build — nothing submitted. In the live system this would open a consignment file"+
-      (n?(" for "+n):"")+(loc?(", car located in "+loc):"")+", with the assay attached.";
+  var v=function(id){ return (document.getElementById(id).value||"").trim(); };
+  if(b) b.addEventListener("click",async function(){
+    m.style.color="var(--patina)"; m.textContent="Sending…"; b.disabled=true;
+    var body={ name:v("c-name"), email:v("c-email"), phone:v("c-phone"), location:v("c-loc"), vehicle:v("c-veh"), vin:v("c-vin"),
+      reserve:document.getElementById("c-res").value, notes:v("c-notes"),
+      wantsKit:document.getElementById("c-kit").checked, consent:document.getElementById("c-ok").checked };
+    try{
+      var res=await fetch("/api/consignments",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});
+      var d=await res.json().catch(function(){ return {}; });
+      if(res.ok){
+        m.textContent="Received — reference "+d.id+". The consignment office will contact you"+(d.wantsKit?" and confirm your scan kit.":".");
+        ["c-name","c-email","c-phone","c-loc","c-veh","c-vin","c-notes"].forEach(function(id){ document.getElementById(id).value=""; });
+        document.getElementById("c-kit").checked=false; document.getElementById("c-ok").checked=false;
+      } else { m.style.color="var(--alert)"; m.textContent=d.message||"That did not go through. Try again, or call the office."; }
+    }catch(e){ m.style.color="var(--alert)"; m.textContent="This preview has no server behind it, so nothing was sent."; }
+    finally{ b.disabled=false; }
   });
   drawMap();
 }
@@ -1008,6 +1042,74 @@ function wireEvidence(){
   bp.addEventListener("click",function(){ send(true); });
 }
 
+/* Staff console: consignments, verified scans and refused uploads in one place. */
+var STAFF_STATUSES=[["new","New"],["contacted","Contacted"],["kit_sent","Kit sent"],["scanned","Scanned"],["consigned","Consigned"],["declined","Declined"]];
+function viewStaff(){
+  return '<section class="blk"><div class="wrap">'+
+    '<div class="lozenge" style="margin-bottom:18px"><span>Consignment office</span></div>'+
+    '<h1>Staff console</h1>'+
+    '<p style="color:var(--ink-soft);max-width:64ch;margin-top:10px">Every consignment request, every verified Witnessmark scan, and every upload the site refused, in one place.</p>'+
+    '<div class="doc" id="st-login" style="margin-top:20px;max-width:520px"><div class="field"><label class="lbl" for="st-token">Staff password</label><input id="st-token" type="password" autocomplete="off"></div>'+
+      '<button class="btn" id="st-go" style="margin-top:12px">Open</button><div class="status" id="st-msg" style="margin-top:10px"></div></div>'+
+    '<div id="st-body"></div>'+
+  '</div></section>';
+}
+function staffTok(){ try{ return sessionStorage.getItem("sa-staff")||""; }catch(e){ return ""; } }
+async function staffFetch(path,opts){
+  opts=opts||{}; opts.headers=Object.assign({authorization:"Bearer "+staffTok()},opts.headers||{});
+  var res=await fetch(path,opts); var d=await res.json().catch(function(){ return {}; });
+  if(!res.ok) throw new Error(d.message||("Request failed ("+res.status+")"));
+  return d;
+}
+async function renderStaff(){
+  var body=document.getElementById("st-body"), msg=document.getElementById("st-msg");
+  try{
+    var c=(await staffFetch("/api/staff/consignments")).consignments||[];
+    var rj=(await staffFetch("/api/staff/rejections")).rejections||[];
+    await loadRecords();
+    document.getElementById("st-login").hidden=true;
+    var open=c.filter(function(x){ return ["consigned","declined"].indexOf(x.status)<0; }).length;
+    var kits=c.filter(function(x){ return x.wantsKit && ["new","contacted"].indexOf(x.status)>=0; }).length;
+    var tiles='<div class="tiles">'+
+      '<div class="tile"><div class="lbl">Open requests</div><div class="n">'+open+'</div></div>'+
+      '<div class="tile"><div class="lbl">Scan kits to send</div><div class="n">'+kits+'</div></div>'+
+      '<div class="tile"><div class="lbl">Verified scans</div><div class="n">'+RECORDS.length+'</div></div>'+
+      '<div class="tile"><div class="lbl">Refused uploads</div><div class="n">'+rj.length+'</div></div></div>';
+    var rows=c.length?c.map(function(x){
+      var opts=STAFF_STATUSES.map(function(s){ return '<option value="'+s[0]+'"'+(s[0]===x.status?' selected':'')+'>'+s[1]+'</option>'; }).join('');
+      var rec=x.lotNumber?recordForLot(x.lotNumber):null;
+      return '<tr><td><b>'+esc(x.vehicle)+'</b>'+(x.vin?'<small>VIN '+esc(x.vin)+'</small>':'')+(x.notes?'<small>'+esc(x.notes)+'</small>':'')+'</td>'+
+        '<td>'+esc(x.name)+'<small>'+esc(x.email)+(x.phone?' &middot; '+esc(x.phone):'')+'</small><small>'+esc(x.location)+'</small></td>'+
+        '<td>'+(x.wantsKit?'<span class="pill kit">Scan kit</span>':'&mdash;')+'<small>'+(x.reserve==="reserve"?"Reserve":"No reserve")+'</small></td>'+
+        '<td><select data-id="'+esc(x.id)+'" class="st-status" aria-label="Status for '+esc(x.vehicle)+'">'+opts+'</select><small>'+esc(x.id)+' &middot; '+esc((x.createdAt||"").slice(0,10))+'</small></td>'+
+        '<td><input data-id="'+esc(x.id)+'" class="st-lot" value="'+esc(x.lotNumber||"")+'" placeholder="Lot" style="width:70px" aria-label="Lot number for '+esc(x.vehicle)+'">'+(rec?'<small><a href="#/lot/'+esc(x.lotNumber)+'">Verified scan</a></small>':'')+'</td></tr>';
+    }).join(''):'<tr><td colspan="5" style="color:var(--muted)">No consignment requests yet.</td></tr>';
+    var recs=RECORDS.length?RECORDS.map(function(r){ var v=r.vehicle||{};
+      return '<tr><td><b>'+esc([v.year,v.make,v.model].filter(Boolean).join(" "))+'</b><small>'+(v.lotNumber?'Lot '+esc(v.lotNumber):'No lot')+'</small></td><td>'+r.session.requiredCaptured+' of '+r.session.requiredViews+' views</td><td>'+(r.warnings||[]).length+' notes</td><td class="mono">'+esc(r.device&&r.device.fingerprint)+'</td><td><a href="'+(lotByNum(v.lotNumber)?'#/lot/'+esc(v.lotNumber):'#/evidence/'+esc(r.id))+'">Open</a></td></tr>'; }).join(''):'<tr><td colspan="5" style="color:var(--muted)">No verified scans yet.</td></tr>';
+    var rej=rj.length?rj.map(function(r){ var last=(r.checks||[])[ (r.checks||[]).length-1 ]||{};
+      return '<tr><td>'+esc((r.checkedAt||"").replace("T"," ").slice(0,16))+'</td><td>'+esc(last.detail||"")+'</td><td class="mono">'+esc((r.bundleSHA256||"").slice(0,16))+'…</td></tr>'; }).join(''):'<tr><td colspan="3" style="color:var(--muted)">Nothing refused.</td></tr>';
+    body.innerHTML=tiles+
+      '<h3 style="margin-top:28px">Consignment requests</h3><div class="scroll"><table class="stafftbl"><tr><th>Car</th><th>Owner</th><th>Offer</th><th>Status</th><th>Lot</th></tr>'+rows+'</table></div>'+
+      '<h3 style="margin-top:28px">Verified Witnessmark scans</h3><div class="scroll"><table class="stafftbl"><tr><th>Car</th><th>Coverage</th><th>Notes</th><th>Device</th><th></th></tr>'+recs+'</table></div>'+
+      '<h3 style="margin-top:28px">Refused uploads</h3><div class="scroll"><table class="stafftbl"><tr><th>When</th><th>Reason</th><th>Bundle</th></tr>'+rej+'</table></div>'+
+      '<p style="margin-top:18px"><a class="btn ghost" href="#/evidence">Upload a scan bundle</a></p>';
+    body.querySelectorAll(".st-status").forEach(function(sel){ sel.addEventListener("change",async function(){
+      try{ await staffFetch("/api/staff/consignments/"+sel.getAttribute("data-id"),{method:"PATCH",headers:{"content-type":"application/json"},body:JSON.stringify({status:sel.value})}); renderStaff(); }
+      catch(e){ msg.textContent=e.message; } }); });
+    body.querySelectorAll(".st-lot").forEach(function(inp){ inp.addEventListener("change",async function(){
+      try{ await staffFetch("/api/staff/consignments/"+inp.getAttribute("data-id"),{method:"PATCH",headers:{"content-type":"application/json"},body:JSON.stringify({lotNumber:inp.value})}); renderStaff(); }
+      catch(e){ msg.textContent=e.message; } }); });
+  }catch(e){
+    document.getElementById("st-login").hidden=false; body.innerHTML=""; msg.textContent=staffTok()?e.message:"";
+  }
+}
+function wireStaff(){
+  var t=document.getElementById("st-token"), go=document.getElementById("st-go");
+  t.value=staffTok();
+  go.addEventListener("click",function(){ try{ sessionStorage.setItem("sa-staff",t.value); }catch(e){} renderStaff(); });
+  if(staffTok()) renderStaff();
+}
+
 /* Server-backed assay: same interface the page already uses for the in-Claude instrument. */
 function downscale(file,max){
   return new Promise(function(resolve,reject){
@@ -1080,6 +1182,7 @@ function route(){
   else if(v==="assay"){ html=viewAssay(); after=function(){ wireInstrument("assay"); }; }
   else if(v==="consign"){ html=viewConsign(); after=function(){ wireInstrument("consign"); wireConsign(); }; }
   else if(v==="archive"){ html=viewArchive(); }
+  else if(v==="staff"){ html=viewStaff(); after=wireStaff; }
   else if(v==="evidence"){ if(parts[1]){ html=viewEvidenceRecord(parts[1]); } else { html=viewEvidence(); after=wireEvidence; } }
   else { v="block"; html=viewBlock(); }
   el.innerHTML=html;

@@ -17,11 +17,16 @@ no bid placed here reaches an auction.
   badge. Anything altered is refused with the reason. Format and guarantees:
   [docs/SESSION-BUNDLE.md](docs/SESSION-BUNDLE.md).
 
+- **Consign** (new) — a real consignment request form with the Witnessmark scan-kit option
+  (planned $249 refundable deposit; no payment is taken on the site).
+- **Staff console** (`#/staff`, new) — one password-protected view of consignment requests with
+  status and lot assignment, verified Witnessmark scans, and every refused upload with its reason.
+
 ## Run and test
 
 ```
 npm install
-npm test                 # 19 tests: verification, tampering, intake auth, assay proxy, serving
+npm test                 # 25 tests: verification, tampering, intake auth, assay proxy, serving
 npm run demo-bundle      # writes demo-bundle.zip (placeholder photos) for trying the upload page
 INTAKE_TOKEN=pick-one npm start   # http://localhost:8080
 ```

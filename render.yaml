@@ -24,6 +24,8 @@ services:
         sync: false
       - key: ANTHROPIC_API_KEY     # enables "Scan a car"; example reading shown until set
         sync: false
+      - key: STAFF_TOKEN           # staff console password; falls back to INTAKE_TOKEN
+        sync: false
       - key: TRUSTED_DEVICE_KEYS   # comma-separated phone key fingerprints, e.g. 9e07-6f52-9051-e681
         sync: false
       - key: ASSAY_MODEL
