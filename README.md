@@ -1,23 +1,55 @@
-# Silver Auctions — site preview
+# Silver Auctions — parallel site (preview)
 
-A static, self-contained preview build of the rebuilt Silver Auctions platform. Single-page app, five routes (`#/block`, `#/catalog`, `#/lot/:n`, `#/assay`, `#/consign`, `#/archive`), one data layer, client-side only — no backend yet. See the Silver Auctions Claude Project doc `claude/silver-auctions-site-build.md` for the full design notes and known gaps.
+A working preview of a rebuilt Silver Auctions platform. **Not** the live silverauctions.com;
+no bid placed here reaches an auction.
 
-## Deploy to Render (2 commands, once this repo exists on GitHub)
+## What's in it
 
-This repo has one file that matters: `index.html`. Render just needs to serve it as a static site.
+- **Catalog, lot pages, archive, consign** — the Sun Valley 2026 catalog (page one), with sale
+  timing that follows the calendar (the sale now shows as closed; next sale "to be announced").
+- **Scan a car** — one photograph in, a conservative condition reading out. Runs on this site's
+  server (`/api/assay`) with the prompt held server-side and per-visitor and daily limits.
+  Shows the example reading until `ANTHROPIC_API_KEY` is set.
+- **Evidence** (new) — the receiving end of the Witnessmark iPhone app. An inspector uploads the
+  app's signed session bundle; the site checks the phone's signature, re-hashes every photo and
+  LiDAR depth file against the capture records, recomputes which required views are present and
+  accepted, and only then publishes it on the matching lot page with a "Witnessmark verified"
+  badge. Anything altered is refused with the reason. Format and guarantees:
+  [docs/SESSION-BUNDLE.md](docs/SESSION-BUNDLE.md).
 
-1. Create an empty GitHub repo (e.g. `silver-auctions-preview`) under github.com/andrewjrider — no README/gitignore, just empty.
-2. From this folder:
-   ```
-   git init
-   git add index.html README.md
-   git commit -m "Silver Auctions site preview"
-   git branch -M main
-   git remote add origin https://github.com/andrewjrider/silver-auctions-preview.git
-   git push -u origin main
-   ```
-3. Tell Claude (or Claude will pick it up on its own device sync) once it's pushed — it has Render access to this workspace (`tea-d8s6me1o3t8c73eqj920`) and can create the static site, wire the subdomain, and confirm it's live.
+- **Consign** (new) — a real consignment request form with the Witnessmark scan-kit option
+  (planned $249 refundable deposit; no payment is taken on the site).
+- **Staff console** (`#/staff`, new) — one password-protected view of consignment requests with
+  status and lot assignment, verified Witnessmark scans, and every refused upload with its reason.
 
-## What this is not yet
+## Run and test
 
-Not the live silverauctions.com. No real bidding, no persistence, no backend. See the "Known gaps / next" section of the build doc for the honest list.
+```
+npm install
+npm test                 # 25 tests: verification, tampering, intake auth, assay proxy, serving
+npm run demo-bundle      # writes demo-bundle.zip (placeholder photos) for trying the upload page
+INTAKE_TOKEN=pick-one npm start   # http://localhost:8080
+```
+
+## Deploy
+
+`render.yaml` defines one Node web service with a persistent disk for published records. In the
+Render dashboard set `INTAKE_TOKEN` (inspector password), optionally `ANTHROPIC_API_KEY` and
+`TRUSTED_DEVICE_KEYS` (fingerprints shown in the app after an export).
+
+## Layout
+
+```
+public/index.html   the site (single page, no build step)
+server/server.js    HTTP server: page, /api/records, /api/bundles, /api/assay, /records/<id>/<file>
+server/verify.js    independent Witnessmark bundle checker
+server/store.js     published records on disk (atomic), rejected-upload audit log
+server/assay.js     server-side assay prompt, Anthropic call, rate limiter
+test/               node:test suites and a reference bundle producer
+```
+
+## Known gaps
+
+No accounts or real bidding; one inspector token rather than per-inspector logins; records are
+public once published (VIN photos included, as auction catalogs normally show VINs); App Attest
+not yet used, so device trust rests on the registered-key list.

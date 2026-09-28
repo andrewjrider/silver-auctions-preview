@@ -245,6 +245,39 @@
   footer.foot p{ color:var(--muted); font-size:.82rem; max-width:80ch; margin-top:9px; line-height:1.65; }
   footer.foot .wm{ font-family:"Bodoni Moda",serif; font-weight:700; font-size:1.15rem; }
 
+  /* Consign + staff */
+  .kit{ display:flex; gap:10px; align-items:flex-start; margin-top:14px; font-size:.9rem; color:var(--ink-soft); cursor:pointer; }
+  .kit input{ margin-top:4px; flex:none; }
+  .stafftbl{ width:100%; border-collapse:collapse; font-size:.88rem; margin-top:12px; }
+  .stafftbl th{ text-align:left; font-family:"Archivo Narrow",sans-serif; font-size:.7rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--rule); padding:8px 8px; }
+  .stafftbl td{ border-bottom:1px solid var(--rule-soft); padding:10px 8px; vertical-align:top; }
+  .stafftbl td small{ display:block; color:var(--muted); }
+  .scroll{ overflow-x:auto; }
+  .pill{ display:inline-block; font-family:"Archivo Narrow",sans-serif; font-size:.68rem; letter-spacing:.1em; text-transform:uppercase; padding:2px 7px; border:1px solid currentColor; border-radius:2px; }
+  .pill.kit{ color:var(--patina); margin:0; } .pill.new{ color:var(--oxblood); }
+  .tiles{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:18px; }
+  .tile{ border:1px solid var(--rule); background:var(--card); padding:14px 16px; }
+  .tile .n{ font-size:1.8rem; font-weight:700; font-variant-numeric:tabular-nums; }
+  @media (max-width:720px){ .tiles{ grid-template-columns:repeat(2,1fr); } }
+  /* Witnessmark evidence */
+  .wm-badge{ position:absolute; bottom:8px; right:8px; background:var(--patina); color:#fff; font-family:"Archivo Narrow",sans-serif;
+    font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; padding:3px 7px; border-radius:2px; }
+  .checks{ list-style:none; margin:14px 0 0; padding:0; }
+  .checks li{ display:flex; gap:10px; padding:7px 0; border-bottom:1px solid var(--rule-soft); font-size:.9rem; }
+  .checks li:last-child{ border-bottom:0; }
+  .checks .mk{ width:18px; flex:none; font-weight:700; }
+  .checks .ok .mk{ color:var(--patina); } .checks .bad .mk{ color:var(--alert); } .checks .warn .mk{ color:var(--brass); }
+  .checks .d{ color:var(--ink-soft); }
+  .views{ display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:10px; margin-top:14px; }
+  .views figure{ margin:0; border:1px solid var(--rule); background:var(--card-2); }
+  .views img{ width:100%; aspect-ratio:4/3; object-fit:cover; display:block; }
+  .views .miss{ aspect-ratio:4/3; display:flex; align-items:center; justify-content:center; text-align:center; padding:6px; }
+  .views figcaption{ font-family:"Archivo Narrow",sans-serif; font-size:.7rem; padding:5px 7px; line-height:1.3; }
+  .views figcaption .st{ display:block; color:var(--muted); letter-spacing:.06em; }
+  .mono{ font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.78rem; word-break:break-all; }
+  .intake input[type=password], .intake input[type=file]{ width:100%; margin-top:6px; }
+  .reclist a.rec{ display:block; border:1px solid var(--rule); background:var(--card); padding:14px 16px; margin-top:10px; color:inherit; text-decoration:none; }
+  .reclist a.rec:hover{ background:var(--card-2); }
   @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
 </style>
 
@@ -263,19 +296,20 @@
       <a href="#/assay" data-v="assay">The Assay</a>
       <a href="#/consign" data-v="consign">Consign</a>
       <a href="#/archive" data-v="archive">Archive</a>
+      <a href="#/evidence" data-v="evidence">Evidence</a>
     </nav>
   </div>
 </header>
 
 <div class="salebar">
   <div class="wrap in">
-    <span><span class="dot"></span> &nbsp;Now on the block</span>
+    <span id="salestate"><span class="dot"></span> &nbsp;Now on the block</span>
     <span class="sep">|</span>
-    <span><b>Sun Valley 2026</b> &middot; Sept 5&ndash;6 &middot; Sun Valley Lodge</span>
+    <span><b>Sun Valley 2026</b> &middot; Sept 5&ndash;6 &middot; Sun Valley Resort, Ketchum</span>
     <span class="sep">|</span>
     <span>130 lots</span>
     <span class="sep">|</span>
-    <span>Memorabilia 10:30 &middot; Vehicles 11:00 MST</span>
+    <span id="salenext">Memorabilia 10:30 &middot; Vehicles 11:00 MST</span>
   </div>
 </div>
 
@@ -286,6 +320,7 @@
     <div class="wm">SILVER AUCTIONS</div>
     <p><b>Preview build.</b> This is a development preview of a rebuilt Silver Auctions platform &mdash; it is not the live silverauctions.com, and no bid placed here reaches an auction. Lot numbers, titles and photographs are Silver Auctions' own, read from the live Sun Valley 2026 catalog on September 5, 2026.</p>
     <p>Every condition grade, flag and valuation band shown was produced by the Silver Standard assay from a single catalog photograph, to demonstrate the method. They are estimates for discussion, not appraisals, not offers, and not investment advice. Historic auction footprint from the house's 2002&ndash;2024 event index. Consignment terms shown are the house's published schedule.</p>
+    <p><a href="#/staff" style="color:var(--muted)">Staff console</a></p>
   </div>
 </footer>
 
@@ -436,12 +471,36 @@ var LOTS = RAW.map(function(r){
   var a = ASSAY[r[0]] || null;
   return { lot:r[0], year:r[1], title:r[2], era:era(r[1]), kind:kind(r[2]), photo:PHOTO[r[0]]||null, assay:a };
 });
+/* Sale timing: copy follows the calendar instead of saying "this weekend" forever. */
+var SALE = { name:"Sun Valley 2026", start:"2026-09-05T10:30:00-06:00", end:"2026-09-06T23:59:00-06:00", venue:"Sun Valley Resort, Ketchum" };
+function saleState(){ var n=Date.now(); return n<Date.parse(SALE.start)?"upcoming":n<=Date.parse(SALE.end)?"live":"closed"; }
+function crossing(){ var s=saleState(); return s==="closed"?"crossed the block at Sun Valley":s==="live"?"are crossing the block this weekend":"cross the block at Sun Valley"; }
+
+/* Witnessmark field records, served by this site after independent verification. */
+var RECORDS = [], RECORD_BY_LOT = {};
+function recordForLot(n){ return RECORD_BY_LOT[String(n)] || null; }
+function recordPhoto(r){
+  var vs=(r.views||[]).filter(function(x){ return x.photo; });
+  var v=vs.filter(function(x){ return /front 3\/4/i.test(x.title); })[0] || vs.filter(function(x){ return !/vin|odometer|document/i.test(x.title); })[0] || vs[0];
+  return v ? "/records/"+r.id+"/"+v.photo : null;
+}
+async function loadRecords(){
+  try{
+    var res=await fetch("/api/records",{cache:"no-store"}); if(!res.ok) return;
+    RECORDS=(await res.json()).records||[]; RECORD_BY_LOT={};
+    RECORDS.forEach(function(r){ var k=r.vehicle&&r.vehicle.lotNumber; if(k && !RECORD_BY_LOT[k]) RECORD_BY_LOT[k]=r; });
+  }catch(e){ RECORDS=[]; }
+}
 function lotByNum(n){ for(var i=0;i<LOTS.length;i++) if(String(LOTS[i].lot)===String(n)) return LOTS[i]; return null; }
 var ASSAYED_COUNT = LOTS.filter(function(l){ return !!l.assay; }).length;
 
 function plateCard(l){
-  var ph = l.photo
-    ? '<div class="ph"><img src="'+l.photo+'" alt="'+esc(l.year+" "+l.title)+'" loading="lazy"><span class="lotplate">LOT '+l.lot+'</span><span class="assayed">Assayed</span></div>'
+  var rec = recordForLot(l.lot), rp = rec ? recordPhoto(rec) : null;
+  var badge = rec ? '<span class="wm-badge">Witnessmark verified</span>' : '';
+  var ph = (!l.photo && rp)
+    ? '<div class="ph"><img src="'+rp+'" alt="'+esc(l.year+" "+l.title)+'" loading="lazy"><span class="lotplate">LOT '+l.lot+'</span>'+badge+'</div>'
+    : l.photo
+    ? '<div class="ph"><img src="'+l.photo+'" alt="'+esc(l.year+" "+l.title)+'" loading="lazy"><span class="lotplate">LOT '+l.lot+'</span><span class="assayed">Assayed</span>'+badge+'</div>'
     : '<div class="ph blank"><span class="lotplate">LOT '+l.lot+'</span><span>Awaiting assay</span></div>';
   var foot = l.assay
     ? '<span class="grade-tag">'+esc(l.assay.grade)+'</span><span class="v">'+usd(l.assay.band[0])+'&ndash;'+usd(l.assay.band[1])+'</span>'
@@ -456,17 +515,17 @@ function viewBlock(){
   var feat=[104,59,77,20,49].map(lotByNum).filter(Boolean);
   return ''+
   '<div class="hero"><div class="wrap">'+
-    '<div class="lozenge kick" style="max-width:340px"><span>Sun Valley &middot; Labor Day weekend</span></div>'+
+    '<div class="lozenge kick" style="max-width:340px"><span>'+(saleState()==="closed"?"Sun Valley 2026 &middot; sale closed":"Sun Valley &middot; Labor Day weekend")+'</span></div>'+
     '<h1>The newest high tech for the <em>best low tech</em> cars.</h1>'+
     '<p class="sub">Forty years of collector cars across the mountain west. Now every lot gets a verified condition assay and a real number before it ever crosses the block &mdash; and you can scan your own car from a barn in Montana.</p>'+
     '<div class="btnrow"><a class="btn" href="#/catalog">Browse the catalog</a>'+
       '<a class="btn ghost" href="#/assay">Scan a car</a>'+
       '<a class="btn ghost" href="#/consign">Consign yours</a></div>'+
     '<div class="notice"><span style="font-size:1.3rem;line-height:1">&#9888;</span><div>'+
-      '<h3>Today, a remote bidder cannot bid at all.</h3>'+
-      '<p>130 lots are crossing the block this weekend &mdash; a 1958 Facel Vega, a 1963 Maserati 3500 GTi, two Corvette convertibles, a 1929 Pontiac. The live catalog carries one line across the top of the whole sale:</p>'+
+      '<h3>'+(saleState()==="closed"?"At Sun Valley, a remote bidder could not bid at all.":"Today, a remote bidder cannot bid at all.")+'</h3>'+
+      '<p>130 lots '+crossing()+' &mdash; a 1958 Facel Vega, a 1963 Maserati 3500 GTi, two Corvette convertibles, a 1929 Pontiac. The catalog carried one line across the top of the whole sale:</p>'+
       '<span class="stamp">In person bidding only for this event</span>'+
-      '<p style="margin-top:12px">A collector in Missoula, Bozeman, Jackson or Calgary cannot raise a hand on any of it. Opening that floor is what this build is for.</p>'+
+      '<p style="margin-top:12px">A collector in Missoula, Bozeman, Jackson or Calgary could not raise a hand on any of it. Opening that floor is what this build is for.</p>'+
     '</div></div>'+
   '</div></div>'+
 
@@ -509,7 +568,7 @@ function viewCatalog(){
   '<section class="blk"><div class="wrap">'+
     '<div class="lozenge" style="margin-bottom:16px"><span>Sun Valley 2026 &middot; catalog</span></div>'+
     '<h1 style="font-size:2.2rem">The catalog</h1>'+
-    '<p style="color:var(--ink-soft);max-width:64ch;margin-top:12px">Page one of the live sale &mdash; '+LOTS.length+' of the 130 lots crossing the block this weekend. '+ASSAYED_COUNT+' carry a full Silver Standard record; the rest appear exactly as the current catalog publishes them, a lot number and a line of text. That difference is the whole point.</p>'+
+    '<p style="color:var(--ink-soft);max-width:64ch;margin-top:12px">Page one of the Sun Valley 2026 catalog &mdash; '+LOTS.length+' of the 130 lots that '+(saleState()==="closed"?"crossed the block":"cross the block")+'. '+ASSAYED_COUNT+' carry a full Silver Standard record; the rest appear exactly as the current catalog publishes them, a lot number and a line of text. That difference is the whole point.</p>'+
     '<div class="filters">'+
       '<input type="search" id="f-q" placeholder="Search make, model, year">'+
       '<select id="f-era"><option value="">All eras</option>'+eras.map(function(e){return '<option>'+e+'</option>';}).join('')+'</select>'+
@@ -548,8 +607,10 @@ function wireCatalog(){
 function viewLot(n){
   var l=lotByNum(n);
   if(!l) return '<section class="blk"><div class="wrap"><h1>Lot not found</h1><p style="margin-top:14px"><a class="btn ghost" href="#/catalog">Back to catalog</a></p></div></section>';
-  var a=l.assay;
-  var photo = l.photo
+  var a=l.assay, rec=recordForLot(l.lot), rp=rec?recordPhoto(rec):null;
+  var photo = (!l.photo && rp)
+    ? '<div class="lotphoto"><img src="'+rp+'" alt="'+esc(l.year+" "+l.title)+'"><div class="cap">Witnessmark field capture &middot; verified by this site &middot; all views below</div></div>'
+    : l.photo
     ? '<div class="lotphoto"><img src="'+l.photo+'" alt="'+esc(l.year+" "+l.title)+'"><div class="cap">Catalog photograph &middot; Sun Valley 2026 &middot; the only image published for this lot</div></div>'
     : '<div class="lotphoto" style="background:var(--card-2)"><div style="aspect-ratio:16/10;display:flex;align-items:center;justify-content:center"><span class="lbl">No photograph published</span></div><div class="cap">This lot has not been through the assay</div></div>';
 
@@ -585,7 +646,7 @@ function viewLot(n){
         '<dt>Prior assays</dt><dd>This is assay 001 for this vehicle</dd>'+
         '<dt>Arbitration</dt><dd>No record</dd>'+
       '</dl>'+
-      '<p style="font-size:.88rem;color:var(--ink-soft);margin-top:14px">The ledger travels with the car for its life, not just this weekend. Every future assay, sale and arbitration attaches here.</p>'+
+      '<p style="font-size:.88rem;color:var(--ink-soft);margin-top:14px">The ledger travels with the car for its life, not just one sale. Every future assay, sale and arbitration attaches here.</p>'+
     '</div>';
   } else {
     right=
@@ -596,7 +657,7 @@ function viewLot(n){
         '<dt>Condition</dt><dd style="color:var(--muted)">No record</dd>'+
         '<dt>Estimate</dt><dd style="color:var(--muted)">None published</dd>'+
         '<dt>VIN</dt><dd style="color:var(--muted)">Not published</dd>'+
-        '<dt>Photographs</dt><dd style="color:var(--muted)">None in this preview</dd>'+
+        '<dt>Photographs</dt>'+(rec?'<dd>Verified field capture &mdash; see the Witnessmark record below</dd>':'<dd style="color:var(--muted)">None in this preview</dd>')+
       '</dl>'+
       '<div style="margin-top:18px"><a class="btn ghost" href="#/assay">Run an assay on it</a></div>'+
     '</div>';
@@ -614,7 +675,7 @@ function viewLot(n){
       '<div>'+photo+
         '<div class="doc" style="margin-top:18px"><h4>As the catalog publishes it today</h4>'+
         '<p style="font-family:\'Archivo Narrow\',sans-serif;background:var(--card-2);border:1px solid var(--rule);padding:10px 13px;margin-top:12px;font-size:.9rem">Lot '+l.lot+' | '+l.year+' '+esc(l.title)+'</p>'+
-        '<p style="font-size:.88rem;color:var(--muted);margin-top:12px">That line, and the photograph above, is the complete public record for this vehicle.</p></div>'+
+        '<p style="font-size:.88rem;color:var(--muted);margin-top:12px">That line'+(rec&&!l.photo?' is all the catalog publishes. The photograph above comes from the verified field record.':', and the photograph above, is the complete public record for this vehicle.')+'</p></div>'+
         '<div class="bidbox" style="margin-top:18px">'+
           '<h4>Remote bidding</h4>'+
           '<div class="row"><span class="k">Status this sale</span><span class="v" style="color:var(--brass)">In person only</span></div>'+
@@ -625,9 +686,44 @@ function viewLot(n){
           '<p class="note">Preview build &mdash; no bid placed here reaches an auction. This is where a verified remote bidder would set a proxy maximum once the floor opens online.</p>'+
         '</div>'+
       '</div>'+
-      '<div>'+right+'</div>'+
+      '<div>'+right+evidencePanel(recordForLot(l.lot))+'</div>'+
     '</div>'+
   '</div></section>';
+}
+
+function checkList(r){
+  var items=(r.checks||[]).map(function(c){ return '<li class="'+(c.ok?'ok':'bad')+'"><span class="mk">'+(c.ok?'&#10003;':'&#10007;')+'</span><div><b>'+esc(c.name)+'</b> <span class="d">&mdash; '+esc(c.detail)+'</span></div></li>'; });
+  (r.warnings||[]).forEach(function(w){ items.push('<li class="warn"><span class="mk">!</span><div class="d">'+esc(w)+'</div></li>'); });
+  return '<ul class="checks">'+items.join('')+'</ul>';
+}
+function viewTiles(r){
+  return '<div class="views">'+(r.views||[]).filter(function(v){ return v.required||v.captured; }).map(function(v){
+    var st = !v.captured ? 'Not captured' : v.review ? ({accepted:'Accepted',needsRetake:'Retake needed',rejected:'Rejected',pending:'Not reviewed'}[v.review.status]||v.review.status)+(v.review.by?' &middot; '+esc(v.review.by):'') : 'Not reviewed';
+    var img = v.photo ? '<img src="/records/'+r.id+'/'+esc(v.photo)+'" alt="'+esc(v.title)+'" loading="lazy">' : '<div class="miss lbl">'+(v.captured?'No photo':'Missing')+'</div>';
+    return '<figure>'+img+'<figcaption>'+esc(v.title)+(v.hasDepth?' &middot; LiDAR':'')+'<span class="st">'+st+'</span></figcaption></figure>';
+  }).join('')+'</div>';
+}
+function evidencePanel(r){
+  if(!r) return '';
+  var s=r.session||{}, d=r.device||{};
+  var depth=(r.depth||[]);
+  var cov = depth.length ? Math.round(100*depth.reduce(function(a,x){ return a+x.validFraction; },0)/depth.length) : null;
+  return '<div class="doc"><div class="lozenge" style="margin-bottom:14px"><span>Witnessmark field record</span></div>'+
+    '<h4>Verified by this site, from the original files.</h4>'+
+    '<p style="color:var(--ink-soft);font-size:.9rem;margin-top:8px">Captured on an iPhone with the Witnessmark app and uploaded as one signed bundle. This site re-checked every photograph and depth file against the hashes recorded at capture before publishing any of it.</p>'+
+    checkList(r)+
+    '<dl class="kv" style="margin-top:14px">'+
+      '<dt>Required views</dt><dd>'+s.requiredCaptured+' of '+s.requiredViews+' captured &middot; '+s.requiredAccepted+' accepted by a reviewer</dd>'+
+      '<dt>LiDAR depth</dt><dd>'+(depth.length?depth.length+' views &middot; '+cov+'% of depth pixels readable (coverage, not accuracy)':'None')+'</dd>'+
+      '<dt>Captured</dt><dd>'+esc((s.startedAt||'').slice(0,10))+' &middot; phone status '+esc(s.status)+'</dd>'+
+      '<dt>Owner consent</dt><dd>'+(r.consent?'Shared with: '+esc((r.consent.recipients||[]).map(function(x){ return {auctionHouse:'auction house',insurer:'insurers',lender:'lenders',buyer:'buyers'}[x]||x; }).join(', ')):'Not recorded')+'</dd>'+
+      '<dt>Device key</dt><dd class="mono">'+esc(d.fingerprint)+' &middot; '+(d.keyStorage==='secureEnclave'?'Secure Enclave':'software')+(d.registered?' &middot; registered':' &middot; not registered')+'</dd>'+
+      '<dt>Bundle</dt><dd class="mono">'+esc(r.bundleSHA256)+'</dd>'+
+    '</dl>'+
+    viewTiles(r)+
+    '<p style="margin-top:14px"><a class="btn ghost" href="/records/'+r.id+'/bundle.zip">Download original bundle</a></p>'+
+    '<p class="note" style="font-size:.8rem;color:var(--muted);margin-top:10px">What this proves: the files are exactly what the signing phone recorded, and nothing was added, removed or edited afterward. What it does not prove: who held the phone, or that the car photographed is the lot named &mdash; that is what the VIN view and the registered-device list are for. Coverage is not a measurement of accuracy.</p>'+
+  '</div>';
 }
 
 function wireLot(){
@@ -680,17 +776,25 @@ function viewConsign(){
     '<h1 style="font-size:2.2rem">Barn in Montana. Block in Sun Valley.</h1>'+
     '<p style="color:var(--ink-soft);max-width:62ch;margin-top:12px">Scan the car where it sits. Get a grade and a band in minutes. Decide whether to consign <em>before</em> you pay an entry fee or hook up a trailer &mdash; which is the reason most good cars never get entered at all.</p>'+
     '<div class="inst" style="margin-top:28px">'+ instrumentHTML("consign") +'</div>'+
-    '<div class="doc" style="margin-top:20px">'+
+    '<div class="doc" style="margin-top:20px" id="c-form">'+
       '<h4>Then consign it</h4>'+
+      '<p style="color:var(--ink-soft);font-size:.92rem;margin-top:6px">Tell us about the car. Silver\'s office calls you back to talk through the next sale, reserve and entry.</p>'+
       '<div class="two" style="margin-top:14px;gap:16px">'+
-        '<div class="field"><label class="lbl" for="c-name">Name</label><input id="c-name" autocomplete="off" placeholder="Your name"></div>'+
+        '<div class="field"><label class="lbl" for="c-name">Your name</label><input id="c-name" autocomplete="name"></div>'+
+        '<div class="field"><label class="lbl" for="c-email">Email</label><input id="c-email" type="email" autocomplete="email"></div>'+
+        '<div class="field"><label class="lbl" for="c-phone">Phone &mdash; optional</label><input id="c-phone" type="tel" autocomplete="tel"></div>'+
         '<div class="field"><label class="lbl" for="c-loc">Where the car is</label><input id="c-loc" autocomplete="off" placeholder="Missoula, MT"></div>'+
-        '<div class="field"><label class="lbl" for="c-res">Reserve</label><select id="c-res"><option>No reserve — 5% commission, $200 minimum</option><option>Reserve — 8% commission, $300 minimum</option></select></div>'+
-        '<div class="field"><label class="lbl" for="c-sale">Sale</label><select id="c-sale"><option>Car d\'Lane — June, Coeur d\'Alene</option><option>Wagon Days — Labor Day, Sun Valley</option><option>Next timed online sale</option></select></div>'+
+        '<div class="field"><label class="lbl" for="c-veh">Year, make, model</label><input id="c-veh" autocomplete="off" placeholder="1967 Ford Mustang fastback"></div>'+
+        '<div class="field"><label class="lbl" for="c-vin">VIN &mdash; optional</label><input id="c-vin" autocomplete="off" maxlength="17"></div>'+
+        '<div class="field"><label class="lbl" for="c-res">Reserve</label><select id="c-res"><option value="no_reserve">No reserve &mdash; 5% commission, $200 minimum</option><option value="reserve">Reserve &mdash; 8% commission, $300 minimum</option></select></div>'+
+        '<div class="field"><label class="lbl" for="c-sale">Sale</label><select id="c-sale" disabled><option>Next Silver sale &mdash; date to be announced</option></select></div>'+
       '</div>'+
-      '<button class="btn" id="c-submit" style="margin-top:16px">Submit consignment</button>'+
-      '<div class="bidmsg" id="c-msg" style="color:var(--patina)"></div>'+
-      '<p style="font-family:\'Archivo Narrow\',sans-serif;font-size:.74rem;color:var(--muted);margin-top:12px">Preview build &mdash; nothing is submitted and no fee is charged. Entry fees, commission and the 8% buyer\'s premium shown are the house\'s published schedule.</p>'+
+      '<div class="field" style="margin-top:14px"><label class="lbl" for="c-notes">Anything we should know &mdash; optional</label><input id="c-notes" autocomplete="off" placeholder="Numbers-matching, restored 2019, stored indoors"></div>'+
+      '<label class="kit" for="c-kit"><input type="checkbox" id="c-kit"><span><b>Send me a Witnessmark scan kit.</b> Planned offer: a $249 refundable deposit, refunded when Silver sells the car. You scan the car where it sits and the verified record goes on the lot page. No payment is taken here; the office confirms the kit with you first.</span></label>'+
+      '<label class="kit" for="c-ok"><input type="checkbox" id="c-ok"><span>Silver Auctions may contact me about consigning this car.</span></label>'+
+      '<button class="btn" id="c-submit" style="margin-top:16px">Send to the consignment office</button>'+
+      '<div class="bidmsg" id="c-msg" role="status" style="color:var(--patina)"></div>'+
+      '<p style="font-family:\'Archivo Narrow\',sans-serif;font-size:.74rem;color:var(--muted);margin-top:12px">Preview build. Requests reach this preview\'s staff console, not Silver Auctions\' live office. Entry fees, commission and the 8% buyer\'s premium shown are the house\'s published schedule.</p>'+
     '</div>'+
   '</div></section>'+
 
@@ -714,11 +818,22 @@ function viewConsign(){
 
 function wireConsign(){
   var b=document.getElementById("c-submit"), m=document.getElementById("c-msg");
-  if(b) b.addEventListener("click",function(){
-    var n=(document.getElementById("c-name").value||"").trim();
-    var loc=(document.getElementById("c-loc").value||"").trim();
-    m.textContent = "Preview build — nothing submitted. In the live system this would open a consignment file"+
-      (n?(" for "+n):"")+(loc?(", car located in "+loc):"")+", with the assay attached.";
+  var v=function(id){ return (document.getElementById(id).value||"").trim(); };
+  if(b) b.addEventListener("click",async function(){
+    m.style.color="var(--patina)"; m.textContent="Sending…"; b.disabled=true;
+    var body={ name:v("c-name"), email:v("c-email"), phone:v("c-phone"), location:v("c-loc"), vehicle:v("c-veh"), vin:v("c-vin"),
+      reserve:document.getElementById("c-res").value, notes:v("c-notes"),
+      wantsKit:document.getElementById("c-kit").checked, consent:document.getElementById("c-ok").checked };
+    try{
+      var res=await fetch("/api/consignments",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});
+      var d=await res.json().catch(function(){ return {}; });
+      if(res.ok){
+        m.textContent="Received — reference "+d.id+". The consignment office will contact you"+(d.wantsKit?" and confirm your scan kit.":".");
+        ["c-name","c-email","c-phone","c-loc","c-veh","c-vin","c-notes"].forEach(function(id){ document.getElementById(id).value=""; });
+        document.getElementById("c-kit").checked=false; document.getElementById("c-ok").checked=false;
+      } else { m.style.color="var(--alert)"; m.textContent=d.message||"That did not go through. Try again, or call the office."; }
+    }catch(e){ m.style.color="var(--alert)"; m.textContent="This preview has no server behind it, so nothing was sent."; }
+    finally{ b.disabled=false; }
   });
   drawMap();
 }
@@ -829,7 +944,7 @@ function wireInstrument(scope){
       +"Widen the band when the photograph shows little or the model is thinly traded; a wide honest band beats a narrow false one. "
       +"If the photograph shows no car, set isVehicle false, grade null, flags [], valuationBandUsd [0,0], and say what it shows in summary.";
     try{
-      var d=await SAMPLE.json(p,{ images:chosen, modelTier:"default" });
+      var d=await SAMPLE.json(p,{ images:chosen, modelTier:"default", known:known });
       $("tag").textContent="Live assay";
       if(d.isVehicle===false){
         $("grade").textContent="Not gradable"; $("note").textContent="That photograph does not show a car";
@@ -866,12 +981,157 @@ function wireInstrument(scope){
   });
 
   if(!SAMPLE){
-    $("droplabel").textContent="Live scanning needs the instrument enabled in this viewer";
+    $("droplabel").textContent=(location.protocol.indexOf("http")===0)?"Live scanning is switched off on this preview":"Live scanning needs the instrument enabled in this viewer";
     $("drophint").textContent="Example reading shown alongside";
     drop.style.cursor="default";
   } else if(!IMAGES_OK){
     $("droplabel").textContent="This viewer cannot send photographs to the instrument";
   }
+}
+
+function viewEvidence(){
+  var list = RECORDS.length ? RECORDS.map(function(r){
+    var v=r.vehicle||{}, s=r.session||{}, l=lotByNum(v.lotNumber);
+    var name=[v.year,v.make,v.model,v.trim].filter(Boolean).join(' ')||'Unnamed vehicle';
+    var href = l ? '#/lot/'+l.lot : '#/evidence/'+r.id;
+    return '<a class="rec" href="'+href+'"><div class="lbl">'+(v.lotNumber?'Lot '+esc(v.lotNumber)+' &middot; ':'')+'Received '+esc((r.receivedAt||'').slice(0,10))+'</div>'+
+      '<h3 style="margin-top:4px">'+esc(name)+'</h3><div style="font-size:.88rem;color:var(--ink-soft);margin-top:4px">'+s.requiredCaptured+' of '+s.requiredViews+' required views &middot; '+(r.warnings||[]).length+' notes &middot; device '+esc(r.device&&r.device.fingerprint)+'</div></a>';
+  }).join('') : '<p style="color:var(--muted);margin-top:12px">No field records published yet.</p>';
+  return '<section class="blk"><div class="wrap">'+
+    '<div class="lozenge" style="margin-bottom:18px"><span>Witnessmark &middot; field evidence</span></div>'+
+    '<h1>Evidence, checked before it is shown.</h1>'+
+    '<p style="color:var(--ink-soft);max-width:64ch;margin-top:12px">Inspectors capture a car with the Witnessmark iPhone app and export one signed bundle. This site opens it, checks the phone&rsquo;s signature, re-hashes every photograph and LiDAR depth file, computes which required views are present, and only then publishes it against the lot.</p>'+
+    '<div class="two" style="margin-top:26px"><div><h4>Published records</h4><div class="reclist">'+list+'</div></div>'+
+    '<div class="doc intake"><h4>Inspector upload</h4>'+
+      '<div class="field"><label class="lbl" for="in-token">Inspector token</label><input id="in-token" type="password" autocomplete="off"></div>'+
+      '<div class="field"><label class="lbl" for="in-file">Session bundle (.zip from the app&rsquo;s Review tab)</label><input id="in-file" type="file" accept=".zip,application/zip"></div>'+
+      '<div class="btnrow" style="margin-top:14px"><button class="btn ghost" id="in-verify" disabled>Check only</button><button class="btn" id="in-publish" disabled>Check &amp; publish</button></div>'+
+      '<div class="status" id="in-status" style="margin-top:12px"></div><div id="in-report"></div>'+
+    '</div></div>'+
+  '</div></section>';
+}
+function viewEvidenceRecord(id){
+  var r=RECORDS.filter(function(x){ return x.id===id; })[0];
+  if(!r) return '<section class="blk"><div class="wrap"><h1>Record not found</h1><p style="margin-top:14px"><a class="btn ghost" href="#/evidence">All records</a></p></div></section>';
+  var v=r.vehicle||{};
+  return '<section class="blk"><div class="wrap"><p style="margin-bottom:20px"><a href="#/evidence" class="lbl">&larr; All records</a></p>'+
+    '<h1>'+esc([v.year,v.make,v.model,v.trim].filter(Boolean).join(' ')||'Unnamed vehicle')+'</h1>'+
+    '<div class="lbl" style="margin-top:8px">'+(v.lotNumber?'Lot '+esc(v.lotNumber)+' is not in this catalog':'No lot number entered on the phone')+'</div>'+
+    '<div style="margin-top:22px">'+evidencePanel(r)+'</div></div></section>';
+}
+function wireEvidence(){
+  var tok=document.getElementById("in-token"), file=document.getElementById("in-file"), st=document.getElementById("in-status"), out=document.getElementById("in-report");
+  var bv=document.getElementById("in-verify"), bp=document.getElementById("in-publish");
+  try{ tok.value=sessionStorage.getItem("wm-token")||""; }catch(e){}
+  function ready(){ var ok=!!(tok.value && file.files && file.files[0]); bv.disabled=!ok; bp.disabled=!ok; }
+  tok.addEventListener("input",function(){ try{ sessionStorage.setItem("wm-token",tok.value); }catch(e){} ready(); });
+  file.addEventListener("change",ready); ready();
+  async function send(publish){
+    bv.disabled=bp.disabled=true; out.innerHTML=""; st.textContent="Uploading and checking "+(file.files[0].size/1048576).toFixed(1)+" MB…";
+    try{
+      var res=await fetch(publish?"/api/bundles":"/api/bundles/verify",{method:"POST",headers:{authorization:"Bearer "+tok.value,"content-type":"application/zip"},body:file.files[0]});
+      var r=await res.json();
+      if(res.status===401||res.status===503){ st.textContent=r.message||"Not accepted."; return; }
+      st.textContent = r.status==="verified" ? (r.published?"Verified and published.":"Verified. Not published.") : r.status==="not_publishable" ? (r.message||"Verified, but the owner did not allow publishing here.") : "Rejected — nothing was published.";
+      out.innerHTML=checkList(r);
+      if(r.published){ await loadRecords(); var l=lotByNum(r.vehicle&&r.vehicle.lotNumber); st.innerHTML='Verified and published. <a href="'+(l?'#/lot/'+l.lot:'#/evidence/'+r.id)+'">Open the record</a>'; }
+    }catch(e){ st.textContent="Upload failed: "+e.message; }
+    finally{ ready(); }
+  }
+  bv.addEventListener("click",function(){ send(false); });
+  bp.addEventListener("click",function(){ send(true); });
+}
+
+/* Staff console: consignments, verified scans and refused uploads in one place. */
+var STAFF_STATUSES=[["new","New"],["contacted","Contacted"],["kit_sent","Kit sent"],["scanned","Scanned"],["consigned","Consigned"],["declined","Declined"]];
+function viewStaff(){
+  return '<section class="blk"><div class="wrap">'+
+    '<div class="lozenge" style="margin-bottom:18px"><span>Consignment office</span></div>'+
+    '<h1>Staff console</h1>'+
+    '<p style="color:var(--ink-soft);max-width:64ch;margin-top:10px">Every consignment request, every verified Witnessmark scan, and every upload the site refused, in one place.</p>'+
+    '<div class="doc" id="st-login" style="margin-top:20px;max-width:520px"><div class="field"><label class="lbl" for="st-token">Staff password</label><input id="st-token" type="password" autocomplete="off"></div>'+
+      '<button class="btn" id="st-go" style="margin-top:12px">Open</button><div class="status" id="st-msg" style="margin-top:10px"></div></div>'+
+    '<div id="st-body"></div>'+
+  '</div></section>';
+}
+function staffTok(){ try{ return sessionStorage.getItem("sa-staff")||""; }catch(e){ return ""; } }
+async function staffFetch(path,opts){
+  opts=opts||{}; opts.headers=Object.assign({authorization:"Bearer "+staffTok()},opts.headers||{});
+  var res=await fetch(path,opts); var d=await res.json().catch(function(){ return {}; });
+  if(!res.ok) throw new Error(d.message||("Request failed ("+res.status+")"));
+  return d;
+}
+async function renderStaff(){
+  var body=document.getElementById("st-body"), msg=document.getElementById("st-msg");
+  try{
+    var c=(await staffFetch("/api/staff/consignments")).consignments||[];
+    var rj=(await staffFetch("/api/staff/rejections")).rejections||[];
+    await loadRecords();
+    document.getElementById("st-login").hidden=true;
+    var open=c.filter(function(x){ return ["consigned","declined"].indexOf(x.status)<0; }).length;
+    var kits=c.filter(function(x){ return x.wantsKit && ["new","contacted"].indexOf(x.status)>=0; }).length;
+    var tiles='<div class="tiles">'+
+      '<div class="tile"><div class="lbl">Open requests</div><div class="n">'+open+'</div></div>'+
+      '<div class="tile"><div class="lbl">Scan kits to send</div><div class="n">'+kits+'</div></div>'+
+      '<div class="tile"><div class="lbl">Verified scans</div><div class="n">'+RECORDS.length+'</div></div>'+
+      '<div class="tile"><div class="lbl">Refused uploads</div><div class="n">'+rj.length+'</div></div></div>';
+    var rows=c.length?c.map(function(x){
+      var opts=STAFF_STATUSES.map(function(s){ return '<option value="'+s[0]+'"'+(s[0]===x.status?' selected':'')+'>'+s[1]+'</option>'; }).join('');
+      var rec=x.lotNumber?recordForLot(x.lotNumber):null;
+      return '<tr><td><b>'+esc(x.vehicle)+'</b>'+(x.vin?'<small>VIN '+esc(x.vin)+'</small>':'')+(x.notes?'<small>'+esc(x.notes)+'</small>':'')+'</td>'+
+        '<td>'+esc(x.name)+'<small>'+esc(x.email)+(x.phone?' &middot; '+esc(x.phone):'')+'</small><small>'+esc(x.location)+'</small></td>'+
+        '<td>'+(x.wantsKit?'<span class="pill kit">Scan kit</span>':'&mdash;')+'<small>'+(x.reserve==="reserve"?"Reserve":"No reserve")+'</small></td>'+
+        '<td><select data-id="'+esc(x.id)+'" class="st-status" aria-label="Status for '+esc(x.vehicle)+'">'+opts+'</select><small>'+esc(x.id)+' &middot; '+esc((x.createdAt||"").slice(0,10))+'</small></td>'+
+        '<td><input data-id="'+esc(x.id)+'" class="st-lot" value="'+esc(x.lotNumber||"")+'" placeholder="Lot" style="width:70px" aria-label="Lot number for '+esc(x.vehicle)+'">'+(rec?'<small><a href="#/lot/'+esc(x.lotNumber)+'">Verified scan</a></small>':'')+'</td></tr>';
+    }).join(''):'<tr><td colspan="5" style="color:var(--muted)">No consignment requests yet.</td></tr>';
+    var recs=RECORDS.length?RECORDS.map(function(r){ var v=r.vehicle||{};
+      return '<tr><td><b>'+esc([v.year,v.make,v.model].filter(Boolean).join(" "))+'</b><small>'+(v.lotNumber?'Lot '+esc(v.lotNumber):'No lot')+'</small></td><td>'+r.session.requiredCaptured+' of '+r.session.requiredViews+' views</td><td>'+(r.warnings||[]).length+' notes</td><td class="mono">'+esc(r.device&&r.device.fingerprint)+'</td><td><a href="'+(lotByNum(v.lotNumber)?'#/lot/'+esc(v.lotNumber):'#/evidence/'+esc(r.id))+'">Open</a></td></tr>'; }).join(''):'<tr><td colspan="5" style="color:var(--muted)">No verified scans yet.</td></tr>';
+    var rej=rj.length?rj.map(function(r){ var last=(r.checks||[])[ (r.checks||[]).length-1 ]||{};
+      return '<tr><td>'+esc((r.checkedAt||"").replace("T"," ").slice(0,16))+'</td><td>'+esc(last.detail||"")+'</td><td class="mono">'+esc((r.bundleSHA256||"").slice(0,16))+'…</td></tr>'; }).join(''):'<tr><td colspan="3" style="color:var(--muted)">Nothing refused.</td></tr>';
+    body.innerHTML=tiles+
+      '<h3 style="margin-top:28px">Consignment requests</h3><div class="scroll"><table class="stafftbl"><tr><th>Car</th><th>Owner</th><th>Offer</th><th>Status</th><th>Lot</th></tr>'+rows+'</table></div>'+
+      '<h3 style="margin-top:28px">Verified Witnessmark scans</h3><div class="scroll"><table class="stafftbl"><tr><th>Car</th><th>Coverage</th><th>Notes</th><th>Device</th><th></th></tr>'+recs+'</table></div>'+
+      '<h3 style="margin-top:28px">Refused uploads</h3><div class="scroll"><table class="stafftbl"><tr><th>When</th><th>Reason</th><th>Bundle</th></tr>'+rej+'</table></div>'+
+      '<p style="margin-top:18px"><a class="btn ghost" href="#/evidence">Upload a scan bundle</a></p>';
+    body.querySelectorAll(".st-status").forEach(function(sel){ sel.addEventListener("change",async function(){
+      try{ await staffFetch("/api/staff/consignments/"+sel.getAttribute("data-id"),{method:"PATCH",headers:{"content-type":"application/json"},body:JSON.stringify({status:sel.value})}); renderStaff(); }
+      catch(e){ msg.textContent=e.message; } }); });
+    body.querySelectorAll(".st-lot").forEach(function(inp){ inp.addEventListener("change",async function(){
+      try{ await staffFetch("/api/staff/consignments/"+inp.getAttribute("data-id"),{method:"PATCH",headers:{"content-type":"application/json"},body:JSON.stringify({lotNumber:inp.value})}); renderStaff(); }
+      catch(e){ msg.textContent=e.message; } }); });
+  }catch(e){
+    document.getElementById("st-login").hidden=false; body.innerHTML=""; msg.textContent=staffTok()?e.message:"";
+  }
+}
+function wireStaff(){
+  var t=document.getElementById("st-token"), go=document.getElementById("st-go");
+  t.value=staffTok();
+  go.addEventListener("click",function(){ try{ sessionStorage.setItem("sa-staff",t.value); }catch(e){} renderStaff(); });
+  if(staffTok()) renderStaff();
+}
+
+/* Server-backed assay: same interface the page already uses for the in-Claude instrument. */
+function downscale(file,max){
+  return new Promise(function(resolve,reject){
+    var img=new Image(); img.onload=function(){
+      var s=Math.min(1,max/Math.max(img.width,img.height)), c=document.createElement("canvas");
+      c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+      c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+      resolve(c.toDataURL("image/jpeg",0.86).split(",")[1]);
+    }; img.onerror=function(){ reject({code:"image_rejected"}); }; img.src=URL.createObjectURL(file);
+  });
+}
+function serverInstrument(){
+  return {
+    limits: async function(){ return { images:true }; },
+    json: async function(prompt, opts){
+      var b64=await downscale(opts.images,1568);
+      var res=await fetch("/api/assay",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({imageBase64:b64,mediaType:"image/jpeg",known:opts.known||""})});
+      var d=await res.json().catch(function(){ return {code:"upstream_error"}; });
+      if(!res.ok) throw { code:d.code||"upstream_error" };
+      return d;
+    }
+  };
 }
 
 /* ======================= MAP ======================= */
@@ -922,6 +1182,8 @@ function route(){
   else if(v==="assay"){ html=viewAssay(); after=function(){ wireInstrument("assay"); }; }
   else if(v==="consign"){ html=viewConsign(); after=function(){ wireInstrument("consign"); wireConsign(); }; }
   else if(v==="archive"){ html=viewArchive(); }
+  else if(v==="staff"){ html=viewStaff(); after=wireStaff; }
+  else if(v==="evidence"){ if(parts[1]){ html=viewEvidenceRecord(parts[1]); } else { html=viewEvidence(); after=wireEvidence; } }
   else { v="block"; html=viewBlock(); }
   el.innerHTML=html;
   if(after) after();
@@ -929,6 +1191,10 @@ function route(){
   for(var i=0;i<nav.length;i++){
     var d=nav[i].getAttribute("data-v");
     nav[i].className = (d===v || (v==="lot" && d==="catalog")) ? "on" : "";
+  }
+  var ss=document.getElementById("salestate"), sn=document.getElementById("salenext");
+  if(ss && saleState()==="closed"){ ss.innerHTML='Sale closed'; ss.style.opacity=".8"; if(sn) sn.textContent="Next sale to be announced"; }
+  else if(ss && saleState()==="upcoming"){ ss.innerHTML='Next on the block';
   }
   window.scrollTo(0,0);
 }
@@ -938,11 +1204,14 @@ window.addEventListener("hashchange",route);
   route();
   try{ if(window.claude && typeof window.claude.use==="function"){ SAMPLE=await window.claude.use("sample"); } }
   catch(e){ SAMPLE=null; }
+  if(!SAMPLE){
+    try{ var hr=await fetch("/api/health",{cache:"no-store"}); if(hr.ok && (await hr.json()).assay) SAMPLE=serverInstrument(); }catch(e){}
+  }
+  await loadRecords();
+  route();
   if(SAMPLE){
     try{ var lim=await SAMPLE.limits(); if(lim && lim.images) IMAGES_OK=true; }catch(e){}
   }
-  var h=(location.hash||"").replace(/^#\/?/,"").split("/")[0];
-  if(h==="assay"||h==="consign") route();
 })();
 </script>
 
